@@ -29,10 +29,12 @@ do (jQuery) ->
       @each ->
         $this = $(this)
         if args[1]?
-          # collapse/expand by node level
-          level = args[1]
-          $this.find(".jsonview .collapsible.level#{level}").siblings('.collapser').each -> JSONView[method](this)
-
+          if $.isNumeric(args[1])
+            # collapse/expand by node level
+            level = args[1]
+            $this.find(".jsonview .collapsible.level#{level}").siblings('.collapser').each -> JSONView[method](this)
+          else
+            args[1].siblings('.collapser').each -> JSONView[method](this)
         else
           # no level specify? collapse/expand all!
           $this.find('.jsonview > ul > li .collapsible').siblings('.collapser').each -> JSONView[method](this)

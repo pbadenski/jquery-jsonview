@@ -235,10 +235,16 @@ Licensed under the MIT License.
         var $this, level;
         $this = $(this);
         if (args[1] != null) {
-          level = args[1];
-          return $this.find(".jsonview .collapsible.level" + level).siblings('.collapser').each(function() {
-            return JSONView[method](this);
-          });
+          if ($.isNumeric(args[1])) {
+            level = args[1];
+            return $this.find(".jsonview .collapsible.level" + level).siblings('.collapser').each(function() {
+              return JSONView[method](this);
+            });
+          } else {
+            return args[1].siblings('.collapser').each(function() {
+              return JSONView[method](this);
+            });
+          }
         } else {
           return $this.find('.jsonview > ul > li .collapsible').siblings('.collapser').each(function() {
             return JSONView[method](this);
