@@ -4,7 +4,8 @@ jQuery JSONView.
 Licensed under the MIT License.
  */
 (function(jQuery) {
-  var $, Collapser, JSONFormatter, JSONView;
+  var $, Collapser, JSONFormatter, JSONView, JSON_VALUE_TYPES;
+  JSON_VALUE_TYPES = ['object', 'array', 'number', 'string', 'boolean', 'null'];
   JSONFormatter = (function() {
     function JSONFormatter(options) {
       if (options == null) {
@@ -36,11 +37,18 @@ Licensed under the MIT License.
         level = 0;
       }
       valueType = Object.prototype.toString.call(value).match(/\s(.+)]/)[1].toLowerCase();
+      if (this.options.strict && !jQuery.inArray(valueType, JSON_VALUE_TYPES)) {
+        throw new Error("" + valueType + " is not a valid JSON value type");
+      }
       return this["" + valueType + "ToHTML"].call(this, value, level);
     };
 
     JSONFormatter.prototype.nullToHTML = function(value) {
       return this.decorateWithSpan('null', 'null');
+    };
+
+    JSONFormatter.prototype.undefinedToHTML = function() {
+      return this.decorateWithSpan('undefined', 'undefined');
     };
 
     JSONFormatter.prototype.numberToHTML = function(value) {
@@ -110,7 +118,7 @@ Licensed under the MIT License.
         value = object[prop];
         hasContents = true;
         key = this.options.escape ? this.jsString(prop) : prop;
-        output += "<li><span class=\"prop\"><span class=\"q\">\"</span>" + key + "<span class=\"q\">\"</span></span>: " + (this.valueToHTML(value, level + 1));
+        output += "<li><a class=\"prop\" href=\"javascript:;\"><span class=\"q\">\"</span>" + key + "<span class=\"q\">\"</span></a>: " + (this.valueToHTML(value, level + 1));
         if (numProps > 1) {
           output += ',';
         }
@@ -138,6 +146,11 @@ Licensed under the MIT License.
 
     Collapser.bindEvent = function(item, options) {
       var collapser;
+      item.firstChild.addEventListener('click', (function(_this) {
+        return function(event) {
+          return _this.toggle(event.target.parentNode.firstChild, options);
+        };
+      })(this));
       collapser = document.createElement('div');
       collapser.className = 'collapser';
       collapser.innerHTML = options.collapsed ? '+' : '-';
@@ -258,13 +271,11 @@ Licensed under the MIT License.
         collapsed: false,
         nl2br: false,
         recursive_collapser: false,
-        escape: true
+        escape: true,
+        strict: false
       };
       options = $.extend(defaultOptions, options);
-      formatter = new JSONFormatter({
-        nl2br: options.nl2br,
-        escape: options.escape
-      });
+      formatter = new JSONFormatter(options);
       if (Object.prototype.toString.call(json) === '[object String]') {
         json = JSON.parse(json);
       }

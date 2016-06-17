@@ -1,3 +1,5 @@
+JSON_VALUE_TYPES = [ 'object', 'array', 'number', 'string', 'boolean', 'null' ]
+
 class JSONFormatter
   constructor: (options = {}) ->
     @options = options
@@ -22,13 +24,19 @@ class JSONFormatter
     <span class="#{className}">#{@htmlEncode(value)}</span>
     """
 
-  # Convert a basic JSON datatype (number, string, boolean, null, object, array) into an HTML fragment.
+  # Convert a basic JSON datatype (number, string, boolean, null, undefined, object, array) into an HTML fragment.
   valueToHTML: (value, level = 0) ->
     valueType = Object.prototype.toString.call(value).match(/\s(.+)]/)[1].toLowerCase()
+    if @options.strict and !jQuery.inArray(valueType, JSON_VALUE_TYPES)
+      throw new Error("#{valueType} is not a valid JSON value type")
+
     @["#{valueType}ToHTML"].call(this, value, level)
 
   nullToHTML: (value) ->
     @decorateWithSpan('null', 'null')
+
+  undefinedToHTML: () ->
+    @decorateWithSpan('undefined', 'undefined')
 
   numberToHTML: (value) ->
     @decorateWithSpan(value, 'num')
@@ -85,7 +93,7 @@ class JSONFormatter
       hasContents = true
       key = if @options.escape then @jsString(prop) else prop
       output += """
-      <li><span class="prop"><span class="q">"</span>#{key}<span class="q">"</span></span>: #{@valueToHTML(value, level + 1)}
+      <li><a class="prop" href="javascript:;"><span class="q">"</span>#{key}<span class="q">"</span></a>: #{@valueToHTML(value, level + 1)}
       """
       output += ',' if numProps > 1
       output += '</li>'
