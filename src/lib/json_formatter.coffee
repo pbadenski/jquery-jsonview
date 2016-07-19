@@ -101,7 +101,7 @@ class JSONFormatter
     if hasContents
       collapsible = if level == 0 then '' else ' collapsible'
       """
-        {<ul class="obj level#{level}#{collapsible}">#{output}</ul>}
+        <ul class="obj level#{level}#{collapsible}">#{output}</ul>
       """
     else
       '{ }'
